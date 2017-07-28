@@ -1,18 +1,41 @@
 #! /usr/bin/env python3
 
-from Bio import SeqIO   #For window sliding
+import re		#Import module for regular expressions
+from Bio import SeqIO   #Import module for window sliding
 
 
 with open("windslid_out.txt","w") as f:
-        for seq_record in SeqIO.parse("gencode.v26.lncRNA_transcripts.fa", "fasta"):
-            for i in range(len(seq_record.seq) - 9) :		#Length of sequence minus 9
-               f.write(str(seq_record.id) + "\n")		#Write the name of the sequence
-               f.write(str(seq_record.seq[i:i+10]) + "\n") 	#Window sliding for 5bp motifs, moving by 1bp	
+	for seq_record in SeqIO.parse("gencode.v26.lncRNA_transcripts.fa", "fasta"):
+		for i in range(len(seq_record.seq) - 9) :		#Length of sequence minus 9
+			f.write(str(seq_record.id) + "\n")		#Write the name of the sequence
+			f.write(str(seq_record.seq[i:i+10]) + "\n") 	#Window sliding for 10bp motifs, moving by 1bp	
+
 
 #Make a dictionary with TFs and their binding motifs
-TP53=AGACATGCCT		#TP53 10bp binding motif
+TP53="AGACATGCCT"		#TP53 10bp binding motif
 
-#The bigger the number the higher the preference
+#Find motifs in lncRNA sequences
+
+fname='windslid_out.txt'
+
+def check(fname, txt):
+    with open(fname) as dataf:
+        return any(txt in line for line in dataf)
+
+if check('windslid_out.txt', 'AGACATGCCT'):
+    print('true')
+else:
+    print('false')
+
+#Gives number of occuranes of the motif
+open('windslid_out.txt', 'r').read().find('AGACATGCCT')
+
+
+#Output gene names, that contain binding motifs
+
+
+
+#SSCORING: The bigger the number the higher the preference
 #>TP53_frequency_matrix
 #A=[7544,10514,45,11931,1710,8,244,1228,1145,3851,3584,7104,0,12925,1825,327,879,1472]
 #C=[1037,116,19689,204,374,2,12014,17286,11875,1474,756,26,19350,250,118,33,3338,9183]
