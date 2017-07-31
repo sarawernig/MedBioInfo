@@ -6,7 +6,7 @@ import re		#Import module for regular expressions
 from Bio import SeqIO	#Import module for window sliding
 from Bio.Alphabet import IUPAC		#Import module for ambigious sequences
 from Bio.Seq import Seq
-
+from Bio import motifs			#Motif search module
 
 #Change this to a string not an output file!
 #Add the position of the sequence at the ned of the header!!!
@@ -26,8 +26,8 @@ from Bio.Seq import Seq
 
 
 #Make a dictionary with TFs and their binding motifs??
-TP53_seq = Seq("AGACATGCCT", IUPAC.unambiguous_dna)	#TP53 10bp binding motif
-CTCF_seq = Seq("CCGCGNGGNGGCAG", IUPAC.unambiguous_dna)	#CTCF 14bp binding motif
+TP53_seq = Seq("AGACATGCCT", IUPAC.ambiguous_dna)	#TP53 10bp binding motif
+CTCF_seq = Seq("CCGCGNGGNGGCAG", IUPAC.ambiguous_dna)	#CTCF 14bp binding motif
 
 
 #Find 10bp motifs in lncRNA sequences (only yes or no; doesn't give the position nor number of occurences)
@@ -83,12 +83,17 @@ sys.stdeer.write()
 
 
 #Import matrix as a numpy array???
-#SSCORING: The bigger the number the higher the preference
+#SCORING: The bigger the number the higher the preference
 #>TP53_frequency_matrix
 #A=[7544,10514,45,11931,1710,8,244,1228,1145,3851,3584,7104,0,12925,1825,327,879,1472]
 #C=[1037,116,19689,204,374,2,12014,17286,11875,1474,756,26,19350,250,118,33,3338,9183]
 #G=[6563,2433,13,653,137,20393,109,417,2151,9954,17846,8821,4,157,89,20549,116,825]
 #T=[2268,735,837,739,18893,0,7106,2642,3774,2118,1546,190,1,1155,17864,68,17859,9120]
 
+#>CTCF_frequency_matrix
+#A=[87,167,281,56,8,744,40,107,851,5,333,54,12,56,104,372,82,117,402]
+#C=[291,145,49,800,903,13,528,433,11,0,3,12,0,8,733,13,482,322,181]
+#G=[76,414,449,21,0,65,334,48,32,903,566,504,890,775,5,507,307,73,266]
+#T=[459,187,134,36,2,91,11,324,18,3,9,341,8,71,67,17,37,396,59]
 
 #Assign scores 1-4, based on numbers in the frequency matrix
