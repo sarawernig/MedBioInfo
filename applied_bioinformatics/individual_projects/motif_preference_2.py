@@ -1,8 +1,16 @@
 #! /usr/bin/env python3
 
-'''import sys		#For standard error report to the user and debugging
+'''
+Made in Python 3.6
+Author: Sara Wernig Zorc
+Usage: ./motif_preference_2.py
+'''
+
+'''
+import sys		#For standard error report to the user and debugging
 import numpy		#Import module for matrixes
-import re'''		#Import module for regular expressions
+import re		#Import module for regular expressions 
+'''
 
 #Biopython modules
 from Bio import SeqIO	
@@ -11,15 +19,44 @@ from Bio.Seq import Seq
 from Bio import motifs			
 from Bio import SeqUtils
 
-motif = Seq("ATAN", IUPAC.ambiguous_dna)			#TESTING
-TP53_seq = Seq("AGACATGCCT", IUPAC.unambiguous_dna)	#TP53 10bp binding motif
-CTCF_seq = Seq("CCGCGNGGNGGCAG", IUPAC.ambiguous_dna)	#CTCF 14bp binding motif
 
-with open("motif_result.txt","w") as f:
+with open("sites/MA0106.1.sites") as handle:
+     p53 = motifs.read(handle, "sites")
+
+motif = p53.degenerate_consensus
+
+with open("motif_result_p53.txt","w") as f:
 	for seq_record in SeqIO.parse('gencode.v26.lncRNA_transcripts.fa','fasta'):
 		f.write(">" + str(seq_record.id) + "\n")
 		result=SeqUtils.nt_search(str(seq_record), motif)
 		f.write(str(result) + "\n")
+
+##
+
+with open("sites/MA0001.1.sites") as handle:
+     AGL3 = motifs.read(handle, "sites")
+
+motif = AGL3.degenerate_consensus
+
+with open("motif_result_AGL3.txt","w") as f:
+	for seq_record in SeqIO.parse('gencode.v26.lncRNA_transcripts.fa','fasta'):
+		f.write(">" + str(seq_record.id) + "\n")
+		result=SeqUtils.nt_search(str(seq_record), motif)
+		f.write(str(result) + "\n")
+
+##
+
+with open("sites/MA0024.1.sites") as handle:
+     E2F1 = motifs.read(handle, "sites")
+
+motif = E2F1.degenerate_consensus
+
+with open("motif_result_E2F1.txt","w") as f:
+	for seq_record in SeqIO.parse('gencode.v26.lncRNA_transcripts.fa','fasta'):
+		f.write(">" + str(seq_record.id) + "\n")
+		result=SeqUtils.nt_search(str(seq_record), motif)
+		f.write(str(result) + "\n")
+
 
 
 #For giving updates to the user on the progress of the program
