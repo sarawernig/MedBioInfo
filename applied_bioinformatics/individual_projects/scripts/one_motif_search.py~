@@ -1,0 +1,46 @@
+#! /usr/bin/env python3
+
+from Bio import SeqIO	
+from Bio.Alphabet import IUPAC		
+from Bio.Seq import Seq
+from Bio import motifs			
+from Bio import SeqUtils
+
+
+with open("sites/MA0106.1.sites") as handle:
+     p53 = motifs.read(handle, "sites")
+
+motif = p53.degenerate_consensus
+
+with open("motif_result_p53.txt","w") as f:
+	for seq_record in SeqIO.parse('gencode.v26.lncRNA_transcripts.fa','fasta'):
+		f.write(">" + str(seq_record.id) + "\n")
+		result=SeqUtils.nt_search(str(seq_record), m)
+		f.write(str(result) + "\n")
+
+##
+
+with open("sites/MA0001.1.sites") as handle:
+     AGL3 = motifs.read(handle, "sites")
+
+motif = AGL3.degenerate_consensus
+
+with open("motif_result_AGL3.txt","w") as f:
+	for seq_record in SeqIO.parse('gencode.v26.lncRNA_transcripts.fa','fasta'):
+		f.write(">" + str(seq_record.id) + "\n")
+		result=SeqUtils.nt_search(str(seq_record), motif)
+		f.write(str(result) + "\n")
+
+##
+
+with open("sites/MA0024.1.sites") as handle:
+     E2F1 = motifs.read(handle, "sites")
+
+motif = E2F1.degenerate_consensus
+
+with open("motif_result_E2F1.txt","w") as f:
+	for seq_record in SeqIO.parse('gencode.v26.lncRNA_transcripts.fa','fasta'):
+		f.write(">" + str(seq_record.id) + "\n")
+		f.write(str(SeqUtils.nt_search(str(seq_record), motif)) + "\n")
+
+
