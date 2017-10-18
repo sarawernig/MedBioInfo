@@ -26,6 +26,7 @@ lincRNA_seq=''
 all_positions=[]
 exon_positions = {}
 gene_positions = {}
+motif_positions = {}
 
 '''Module genome_sequence, gives the whole genome sequence as one line,
 seperated by >Chromosome name'''
@@ -80,7 +81,7 @@ def find_lincRNA_exon(annotation_file):
 	#print(exon_positions)
 	return exon_positions
 
-def find_lincRNA_gene(annotation_file):
+def find_lincRNA_transcript(annotation_file):
 	with open(annotation_file, "r") as gtf:
 		for line in gtf:
 			if line.startswith('#'):
@@ -154,7 +155,6 @@ def motif_search(input_jaspar,lincRNA_seq,output_motif):
 					position = abs(pos)
 					final_position = (int(position)/int(d[-2]))
 					all_positions.append(final_position)
-					captured_position = (linc_id,pos)
 					#f.write("For lincRNA" + "\t" + str(d[0]) + "\t" + str(d[1]) + "\t" + "total length:" + "\t" + str(d[-2]) + "\n")
 					#f.write("Motif" + "\t" + str(m.name) + "\t" + "binds at position" + "\t" + str(pos) + "\t" + " with score: " + "\t" + str(score) + "\n")
 
@@ -168,42 +168,52 @@ def calculation():
 	var=statistics.variance(motif_search())
 	print("Mode:\t" + mode + "\t" + "Mean:\t"+ mean + "Standard diviation::\t" + stdev + "Variance:\t", var)
 
-def motif_search_2(input_jaspar,lincRNA_seq,output_motif):
-	with open (input_jaspar,"r") as fm, open(lincRNA_seq,"r") as lincs, open(output_motif,"w") as f:
+def motif_search_2(input_jaspar,lincRNA_seq):
+	with open (input_jaspar,"r") as fm, open(lincRNA_seq,"r") as lincs:
 		for m in motifs.parse(fm,"jaspar"):
 			for lincseq in SeqIO.parse(lincs,'fasta',alphabet=IUPAC.unambiguous_dna):
-				for pos, score in m.pssm.search(lincseq.seq, threshold=7.0):
-					d=lincseq.id.split("|")
-					linc_id = d[1].strip("\" ")
-					position = abs(pos)
-					final_position = (int(position)/int(d[-2]))
-					all_positions.append(final_position)
-					captured_position = (linc_id,pos)
+				d = lincseq.id.split("|")
+				linc_id = d[0].strip("\" ")
+				#print(linc_id)
+				for pos, score in m.pssm.search(lincseq.seq):
+					one_position = int(abs(pos))
+					list_positions = [one_position]
+					#print(pos)
+					if linc_id in motif_positions.keys():
+						motif_positions[linc_id].append(one_position)
+					else:
+						empty_values = motif_positions.get(linc_id,None)
+						motif_positions[linc_id] = list_positions
 
-	return captured_position
+	#print(motif_positions)
+	return motif_positions
 
-def main_preference_of_binding():
-	a = motif_search_2(input_jaspar,lincRNA_seq,output_motif)
-	b = find_lincRNA_gene(annotation_file)
+def main_preference_of_binding(input_jaspar,lincRNA_seq,annotation_file):
+	a = motif_search_2(input_jaspar,lincRNA_seq)
+	b = find_lincRNA_transcript(annotation_file)
 	c = find_lincRNA_exon(annotation_file)
-	
-	old_trans_id = a[0]
-	old_pos = a[1]
 
-	new_pos = a[1] + start_gene
+	for key, value in a.items():
+		print(key,value)
+
+	for key, value in b.items():
+		print(key,value)
+
+	for key, value in c.items():
+		print(key,value)
 
 
 
 if __name__ == '__main__':
 	#genome_sequence("input/hg38.fa")
-	#find_lincRNA_exon(annotation_file="input/test_file.gtf")
-	find_lincRNA_gene(annotation_file="input/test_file.gtf")
+	#find_lincRNA_transcript(annotation_file="input/test_file.gtf")
+	#find_lincRNA_gene(annotation_file="input/test_file.gtf")
 	#lincRNA_sequence(input_fasta="input/hg38.fa",annotation_file="input/gencode.v26.annotation.gtf")
 	#make_consensus("input/frequency_matrixes_vertebrates_nr_JASPAR.txt","input/degConsensusSeq.txt")
 	#calculation()
 	#motif_search("input/JASPAR2018.txt","input/gencode.v27.lncRNA_transcripts.fa","output/test_motif_result.positions.txt")
-	#motif_search_2()
-	#main_preference_of_binding():
+	#motif_search_2("input/JASPAR2018.txt","input/test.fa")
+	main_preference_of_binding("input/JASPAR2018.txt","input/test.fa","input/test_file.gtf")
 
 #For giving updates to the user on the progress of the program
 #sys.stdeer.write()
