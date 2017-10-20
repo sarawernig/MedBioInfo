@@ -8,16 +8,13 @@ Copyright (C) 2017 Sara Wernig Zorc
 Usage: ./motif_preference_2.py input_file.txt outputfile.txt
 '''
 
-'''
-import sys		#For standard error report and system arguments
-import re		#Import module for regular expressions
-'''
-
 #Biopython modules
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 from Bio import motifs
+
+import sys
 
 genome=[]
 lincRNAs=[]
@@ -27,6 +24,7 @@ all_positions=[]
 exon_positions = {}
 gene_positions = {}
 motif_positions = {}
+exon_motif = []
 
 '''Module genome_sequence, gives the whole genome sequence as one line,
 seperated by >Chromosome name'''
@@ -111,7 +109,7 @@ def find_lincRNA_transcript(annotation_file):
 	return gene_positions
 
 def lincRNA_sequence(input_fasta,annotation_file,):
-	for line in find_lincRNA(annotation_file):
+	for line in find_lincRNA_transcript(annotation_file):
 		a=str(genome_sequence(input_fasta))
 		start=int(line[1])
 		stop=int(line[2])
@@ -133,11 +131,6 @@ def make_consensus(input_matrix,output_consensus):
 			f.write(">" + str(m.base_id) + "\n")
 			f.write(str(m.consensus) + "\n")
 
-def make_instances(input_matrix,output_instances):
-	with open(output_instances,"a") as f, open(input_matrix,"r") as matrix:
-		for m in motifs.parse(matrix,"jaspar"):
-			f.write(">" + str(m.base_id) + "\n")
-			f.write(str(m.instances) + "\n")
 
 '''Threshold of log-odds 7 = 100x more likely to occur in motif
 than random background.
@@ -145,7 +138,7 @@ Negative positions are on - strand, positive positions are on + strand.
 A highly selective motif should only match once (or zero times)
 in each sequence tested.'''
 
-def motif_search(input_jaspar,lincRNA_seq,output_motif):
+def motif_search_calc(input_jaspar,lincRNA_seq,output_motif):
 	with open (input_jaspar,"r") as fm, open(lincRNA_seq,"r") as lincs, open(output_motif,"w") as f:
 		for m in motifs.parse(fm,"jaspar"):
 			for lincseq in SeqIO.parse(lincs,'fasta',alphabet=IUPAC.unambiguous_dna):
@@ -155,20 +148,20 @@ def motif_search(input_jaspar,lincRNA_seq,output_motif):
 					position = abs(pos)
 					final_position = (int(position)/int(d[-2]))
 					all_positions.append(final_position)
-					#f.write("For lincRNA" + "\t" + str(d[0]) + "\t" + str(d[1]) + "\t" + "total length:" + "\t" + str(d[-2]) + "\n")
-					#f.write("Motif" + "\t" + str(m.name) + "\t" + "binds at position" + "\t" + str(pos) + "\t" + " with score: " + "\t" + str(score) + "\n")
+					f.write("For lincRNA" + "\t" + str(d[0]) + "\t" + str(d[1]) + "\t" + "total length:" + "\t" + str(d[-2]) + "\n")
+					f.write("Motif" + "\t" + str(m.name) + "\t" + "binds at position" + "\t" + str(pos) + "\t" + " with score: " + "\t" + str(score) + "\n")
 
 	return all_positions
 
 def calculation():
 	import statistics
-	mode=statistics.mode(motif_search())
-	mean=statistics.mean(motif_search())
-	stdev=statistics.stdev(motif_search())
-	var=statistics.variance(motif_search())
+	mode=statistics.mode(motif_search_calc())
+	mean=statistics.mean(motif_search_calc())
+	stdev=statistics.stdev(motif_search_calc())
+	var=statistics.variance(motif_search_calc())
 	print("Mode:\t" + mode + "\t" + "Mean:\t"+ mean + "Standard diviation::\t" + stdev + "Variance:\t", var)
 
-def motif_search_2(input_jaspar,lincRNA_seq):
+def motif_search(input_jaspar,lincRNA_seq):
 	with open (input_jaspar,"r") as fm, open(lincRNA_seq,"r") as lincs:
 		for m in motifs.parse(fm,"jaspar"):
 			for lincseq in SeqIO.parse(lincs,'fasta',alphabet=IUPAC.unambiguous_dna):
@@ -185,35 +178,52 @@ def motif_search_2(input_jaspar,lincRNA_seq):
 						empty_values = motif_positions.get(linc_id,None)
 						motif_positions[linc_id] = list_positions
 
-	#print(motif_positions)
+	print(motif_positions)
 	return motif_positions
 
-def main_preference_of_binding(input_jaspar,lincRNA_seq,annotation_file):
-	a = motif_search_2(input_jaspar,lincRNA_seq)
+def main_preference_of_binding():
+
+	if len(sys.argv) == 1:
+		input_jaspar = "input/NFKB.jaspar"
+		lincRNA_seq = "input/gencode.v27.lncRNA_transcripts.fa"
+		annotation_file = "input/gencode.v27.long_noncoding_RNAs.gtf"
+	else:
+		input_jaspar = sys.argv[1]
+		lincRNA_seq = sys.argv[2]
+		annotation_file = sys.argv[3]
+
+	a = motif_search(input_jaspar,lincRNA_seq)
 	b = find_lincRNA_transcript(annotation_file)
 	c = find_lincRNA_exon(annotation_file)
 
-	for key, value in a.items():
-		print(key,value)
+	for key in a:
+		if len(a)>0:
+			for i in range(0,len(a)):
+				a[key][i] = a[key][i] + b[key][1]
 
-	for key, value in b.items():
-		print(key,value)
+	for key in a:
+		if len(a)>0:
+			for i in a[key]:
+				for value in c[key]:
+					#print(value[2])
+					if int(i) > int(value[2]) and int(i) < value[3]:
+						exon_motif.append(value[0])
 
-	for key, value in c.items():
-		print(key,value)
+	#print(exon_motif)
 
+	from collections import Counter
+	counts = Counter(exon_motif)
+	print(counts)
 
 
 if __name__ == '__main__':
 	#genome_sequence("input/hg38.fa")
 	#find_lincRNA_transcript(annotation_file="input/test_file.gtf")
-	#find_lincRNA_gene(annotation_file="input/test_file.gtf")
+	#find_lincRNA_gene(annotation_file="input/gencode.v27.long_noncoding_RNAs.gtf")
 	#lincRNA_sequence(input_fasta="input/hg38.fa",annotation_file="input/gencode.v26.annotation.gtf")
 	#make_consensus("input/frequency_matrixes_vertebrates_nr_JASPAR.txt","input/degConsensusSeq.txt")
-	#calculation()
-	#motif_search("input/JASPAR2018.txt","input/gencode.v27.lncRNA_transcripts.fa","output/test_motif_result.positions.txt")
-	#motif_search_2("input/JASPAR2018.txt","input/test.fa")
-	main_preference_of_binding("input/JASPAR2018.txt","input/test.fa","input/test_file.gtf")
 
-#For giving updates to the user on the progress of the program
-#sys.stdeer.write()
+	#motif_search_calc("input/NFKB.jaspar","input/gencode.v27.lncRNA_transcripts.fa","output/NFKB_motif_result.positions.txt")
+	#calculation()
+	#motif_search("input/TP53.txt","input/gencode.v27.lncRNA_transcripts.fa")
+	main_preference_of_binding()
