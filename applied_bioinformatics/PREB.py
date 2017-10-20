@@ -5,7 +5,7 @@
 Made in Python 3.6
 Author: Sara Wernig Zorc
 Copyright (C) 2017 Sara Wernig Zorc
-Usage: ./motif_preference_2.py input_file.txt outputfile.txt
+Usage: ./PREB.py jaspar_motifs.jaspar lincRNAS_sequences.fasta annotation_file.gtf
 '''
 
 #Biopython modules
